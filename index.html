@@ -289,9 +289,12 @@
   const GRAVITY = 2400;       // px / s^2 - heavier fall
   const FLOOR_MARGIN = 56;    // keep the pile above the footer
   const MAX_DROPS = 3000;     // high enough to let the pile fill the screen
-  const CELL_SIZE = 40;       // spatial-hash bucket size for broad-phase collision
-  const RESTITUTION = 0.06;   // floor bounce energy retained - barely any bounce
-  const FRICTION = 0.93;      // horizontal damping per frame - settles fast
+  const CELL_SIZE = 56;       // spatial-hash bucket size for broad-phase collision (>= biggest hitbox)
+  const RESTITUTION = 0.02;   // floor bounce energy retained - almost no bounce
+  const FRICTION = 0.8;       // horizontal damping per frame - settles fast, less skidding
+  const MAX_SPEED = 500;      // clamp so collision impulses can't make letters fly
+  const REST_SPEED = 6;       // below this px/s a letter counts as "at rest"
+  const FREEZE_AFTER = 3000;  // ms a letter must stay at rest before it locks in place
 
   const drops = [];
   let physicsRunning = false;
@@ -302,7 +305,9 @@
     const letter = sectors[currentIndex].dataset.letter;
 
     const size = (12 + Math.random() * 18) * 1.5;
-    const r = size * 0.42;
+    // hitbox is padded well beyond the glyph itself so letters keep more
+    // distance from each other and stack instead of slipping into gaps
+    const r = size * 0.65;
 
     const el = document.createElement('div');
     el.className = 'drop';
@@ -315,12 +320,13 @@
       el,
       x: mouseX + (Math.random() - 0.5) * 14,
       y: mouseY + (Math.random() - 0.5) * 10,
-      vx: (Math.random() - 0.5) * 160,
-      vy: Math.random() * 60,
+      vx: (Math.random() - 0.5) * 60,
+      vy: Math.random() * 40,
       r,
       rot: (Math.random() - 0.5) * 60,
       vrot: (Math.random() - 0.5) * 90,
-      settled: false
+      restTime: 0,
+      frozen: false
     };
 
     if (drops.length >= MAX_DROPS) {
@@ -335,13 +341,22 @@
     const minX = 0, maxX = window.innerWidth;
 
     for (const d of drops) {
-      if (!d.settled) {
-        d.vy += GRAVITY * dt;
-        d.x += d.vx * dt;
-        d.y += d.vy * dt;
-        d.vrot *= 0.99;
-        d.rot += d.vrot * dt;
+      if (d.frozen) continue;
+
+      d.vy += GRAVITY * dt;
+
+      // clamp so accumulated collision impulses can't fling letters around
+      const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
+      if (speed > MAX_SPEED) {
+        const s = MAX_SPEED / speed;
+        d.vx *= s;
+        d.vy *= s;
       }
+
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      d.vrot *= 0.99;
+      d.rot += d.vrot * dt;
 
       // walls
       if (d.x - d.r < minX) { d.x = minX + d.r; d.vx *= -0.4; }
@@ -354,7 +369,6 @@
           d.vy *= -RESTITUTION;
         } else {
           d.vy = 0;
-          d.settled = true;
         }
         d.vx *= FRICTION;
         d.vrot *= 0.5;
@@ -384,26 +398,67 @@
           for (const j of bucket) {
             if (j <= i) continue;
             const b = drops[j];
+            if (a.frozen && b.frozen) continue;
+
             const dx = b.x - a.x, dy = b.y - a.y;
             const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
             const minDist = a.r + b.r;
             if (dist < minDist) {
-              const overlap = (minDist - dist) / 2;
+              const overlap = minDist - dist;
               const nx = dx / dist, ny = dy / dist;
-              a.x -= nx * overlap;
-              a.y -= ny * overlap;
-              b.x += nx * overlap;
-              b.y += ny * overlap;
+
+              // frozen bodies are immovable — only the other one yields
+              if (a.frozen) {
+                b.x += nx * overlap;
+                b.y += ny * overlap;
+                if (ny < -0.6 && b.vy > 0) { b.vy *= -RESTITUTION; if (Math.abs(b.vy) < 40) b.vy = 0; b.vx *= FRICTION; }
+                b.vx += nx * 0.08 * 30;
+                continue;
+              }
+              if (b.frozen) {
+                a.x -= nx * overlap;
+                a.y -= ny * overlap;
+                if (ny > 0.6 && a.vy > 0) { a.vy *= -RESTITUTION; if (Math.abs(a.vy) < 40) a.vy = 0; a.vx *= FRICTION; }
+                a.vx -= nx * 0.08 * 30;
+                continue;
+              }
+
+              const half = overlap / 2;
+              a.x -= nx * half;
+              a.y -= ny * half;
+              b.x += nx * half;
+              b.y += ny * half;
+
+              // vertical resting contact: kill the falling speed of whichever
+              // body is landing on top, like landing on the floor
+              if (ny < -0.6 && b.vy > 0) { b.vy *= -RESTITUTION; if (Math.abs(b.vy) < 40) b.vy = 0; b.vx *= FRICTION; }
+              if (ny > 0.6 && a.vy > 0) { a.vy *= -RESTITUTION; if (Math.abs(a.vy) < 40) a.vy = 0; a.vx *= FRICTION; }
 
               // a small impulse so the pile shifts to make room, then settles
-              const push = 0.18;
+              const push = 0.08;
               a.vx -= nx * push * 30;
               b.vx += nx * push * 30;
-              if (ny > 0.5) { a.settled = false; }
-              if (ny < -0.5) { b.settled = false; }
             }
           }
         }
+      }
+    }
+
+    // freeze any letter that has stayed essentially motionless for a while
+    const restTimeMs = dt * 1000;
+    for (const d of drops) {
+      if (d.frozen) continue;
+      const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
+      if (speed < REST_SPEED) {
+        d.restTime += restTimeMs;
+        if (d.restTime >= FREEZE_AFTER) {
+          d.frozen = true;
+          d.vx = 0;
+          d.vy = 0;
+          d.vrot = 0;
+        }
+      } else {
+        d.restTime = 0;
       }
     }
 
