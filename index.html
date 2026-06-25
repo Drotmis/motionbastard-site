@@ -300,11 +300,18 @@
   let physicsRunning = false;
   let lastTime = 0;
 
+  function isDesktopOrientation() {
+    // horizontal viewport (wider than tall) reads as desktop; vertical
+    // (taller than wide) reads as mobile/portrait
+    return window.innerWidth > window.innerHeight;
+  }
+
   function spawnDrop() {
     if (screen !== 'columns' || currentIndex === -1) return;
     const letter = sectors[currentIndex].dataset.letter;
 
-    const size = (12 + Math.random() * 18) * 1.5;
+    const sizeScale = isDesktopOrientation() ? 2 : 1;
+    const size = (12 + Math.random() * 18) * 1.5 * sizeScale;
     // hitbox is padded well beyond the glyph itself so letters keep more
     // distance from each other and stack instead of slipping into gaps
     const r = size * 0.65;
