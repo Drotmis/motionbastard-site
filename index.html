@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOTIONBASTARD</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    cursor: none;
+  }
+
+  #columnsScreen, #gridScreen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #gridScreen {
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #sectors {
+    width: 100%;
+    height: 100%;
+    display: flex;
+  }
+  .sector {
+    flex: 1 1 0;
+    height: 100%;
+    background: #000;
+    position: relative;
+    transition: background-color 0.18s ease-out;
+    border-right: 1px solid rgba(255,255,255,0.05);
+  }
+  .sector:last-child { border-right: none; }
+  .sector.active {
+    background: #fff;
+  }
+  .sector .letter {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px) scale(0.7);
+    font-family: 'Arial Black', Helvetica, sans-serif;
+    font-weight: 900;
+    font-size: clamp(20px, 4vw, 56px);
+    color: #000;
+    opacity: 0;
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+    letter-spacing: 2px;
+    pointer-events: none;
+    user-select: none;
+  }
+  .sector.active .letter {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  #gridContainer {
+    display: grid;
+    gap: 2px;
+  }
+
+  .cell {
+    width: min(3.2vw, 3.2vh);
+    height: min(3.2vw, 3.2vh);
+    background: #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease-out;
+  }
+  .cell.active {
+    background: #fff;
+  }
+  .cell .letter {
+    font-family: 'Arial Black', Helvetica, sans-serif;
+    font-weight: 900;
+    font-size: min(1.4vw, 1.4vh);
+    color: #000;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    text-transform: lowercase;
+    user-select: none;
+    pointer-events: none;
+  }
+  /* Game of Life: hard on/off squares, no fade/cross-blend mid-toggle */
+  #gridContainer.no-anim .cell,
+  #gridContainer.no-anim .cell .letter {
+    transition: none;
+  }
+  .cell.active .letter {
+    opacity: 1;
+  }
+
+  #particle-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+  }
+
+  .drop {
+    position: absolute;
+    font-family: 'Arial Black', Helvetica, sans-serif;
+    font-weight: 900;
+    will-change: transform, opacity;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  #title {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    letter-spacing: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    mix-blend-mode: difference;
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #cursorDot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    mix-blend-mode: difference;
+    pointer-events: none;
+    z-index: 20;
+    transform: translate(-50%, -50%);
+    transition: width 0.1s, height 0.1s;
+  }
+
+  #footer {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    width: 100%;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    cursor: auto;
+  }
+  #footer a {
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: color 0.2s ease-out;
+    mix-blend-mode: difference;
+  }
+  #footer a:hover {
+    color: #fff;
+  }
+  #footer a svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div id="columnsScreen">
+  <div id="sectors"></div>
+</div>
+
+<div id="gridScreen">
+  <div id="gridContainer"></div>
+</div>
+
+<div id="particle-layer"></div>
+<div id="cursorDot"></div>
+<div id="title">MOTIONBASTARD</div>
+
+<div id="footer">
+  <a href="mailto:locomotorafilms@gmail.com" aria-label="Email">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 6l9 7 9-7"/></svg>
+  </a>
+  <a href="https://www.instagram.com/motion.bastard" target="_blank" rel="noopener" aria-label="Instagram">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
+  </a>
+  <a href="https://contra.com/diegorotmistrovsky" target="_blank" rel="noopener">See work and important stuff</a>
+</div>
+
+<script>
+(function () {
+  const WORD = "MOTIONBASTARD";
+  const GRID_SIZE = 25;
+  const GRID_STRING = "motionbastard";
+
+  const columnsScreen = document.getElementById('columnsScreen');
+  const gridScreen = document.getElementById('gridScreen');
+  const sectorsContainer = document.getElementById('sectors');
+  const gridContainer = document.getElementById('gridContainer');
+  const particleLayer = document.getElementById('particle-layer');
+  const cursorDot = document.getElementById('cursorDot');
+  const title = document.getElementById('title');
+
+  let screen = 'columns'; // 'columns' | 'grid'
+
+  // ============================================================
+  // Screen 1: Columns
+  // ============================================================
+
+  const sectors = [];
+
+  WORD.split('').forEach((letter, i) => {
+    const sector = document.createElement('div');
+    sector.className = 'sector';
+    sector.dataset.index = i;
+    sector.dataset.letter = letter;
+
+    const letterEl = document.createElement('div');
+    letterEl.className = 'letter';
+    letterEl.textContent = letter;
+    sector.appendChild(letterEl);
+
+    sectorsContainer.appendChild(sector);
+    sectors.push(sector);
+  });
+
+  let currentIndex = -1;
+  let mouseX = 0, mouseY = 0;
+  let spawnTimer = null;
+  let transitionTimer = null;
+  const activated = new Set();
+
+  function indexFromX(x) {
+    const w = window.innerWidth / sectors.length;
+    let idx = Math.floor(x / w);
+    if (idx < 0) idx = 0;
+    if (idx > sectors.length - 1) idx = sectors.length - 1;
+    return idx;
+  }
+
+  function activateSector(idx) {
+    currentIndex = idx;
+    if (!activated.has(idx)) {
+      activated.add(idx);
+      sectors[idx].classList.add('active');
+
+      if (activated.size === sectors.length) {
+        clearTimeout(transitionTimer);
+        transitionTimer = setTimeout(goToGrid, 1000);
+      }
+    }
+  }
+
+  function resetColumns() {
+    sectors.forEach(s => s.classList.remove('active'));
+    activated.clear();
+    currentIndex = -1;
+  }
+
+  // --- Procedural falling-letter physics system ---
+  // Each letter is a simple circle body: gravity + floor collision + pairwise
+  // collision resolution against every other resting/falling letter. No
+  // physics library — this is the whole simulation.
+
+  const GRAVITY = 2400;       // px / s^2 - heavier fall
+  const FLOOR_MARGIN = 56;    // keep the pile above the footer
+  const MAX_DROPS = 3000;     // high enough to let the pile fill the screen
+  const CELL_SIZE = 40;       // spatial-hash bucket size for broad-phase collision
+  const RESTITUTION = 0.06;   // floor bounce energy retained - barely any bounce
+  const FRICTION = 0.93;      // horizontal damping per frame - settles fast
+
+  const drops = [];
+  let physicsRunning = false;
+  let lastTime = 0;
+
+  function spawnDrop() {
+    if (screen !== 'columns' || currentIndex === -1) return;
+    const letter = sectors[currentIndex].dataset.letter;
+
+    const size = (12 + Math.random() * 18) * 1.5;
+    const r = size * 0.42;
+
+    const el = document.createElement('div');
+    el.className = 'drop';
+    el.textContent = letter;
+    el.style.fontSize = size + 'px';
+    el.style.color = Math.random() < 0.5 ? '#ffffff' : '#e7e7e7';
+    particleLayer.appendChild(el);
+
+    const drop = {
+      el,
+      x: mouseX + (Math.random() - 0.5) * 14,
+      y: mouseY + (Math.random() - 0.5) * 10,
+      vx: (Math.random() - 0.5) * 160,
+      vy: Math.random() * 60,
+      r,
+      rot: (Math.random() - 0.5) * 60,
+      vrot: (Math.random() - 0.5) * 90,
+      settled: false
+    };
+
+    if (drops.length >= MAX_DROPS) {
+      const oldest = drops.shift();
+      oldest.el.remove();
+    }
+    drops.push(drop);
+  }
+
+  function stepPhysics(dt) {
+    const floorY = window.innerHeight - FLOOR_MARGIN;
+    const minX = 0, maxX = window.innerWidth;
+
+    for (const d of drops) {
+      if (!d.settled) {
+        d.vy += GRAVITY * dt;
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+        d.vrot *= 0.99;
+        d.rot += d.vrot * dt;
+      }
+
+      // walls
+      if (d.x - d.r < minX) { d.x = minX + d.r; d.vx *= -0.4; }
+      if (d.x + d.r > maxX) { d.x = maxX - d.r; d.vx *= -0.4; }
+
+      // floor
+      if (d.y + d.r > floorY) {
+        d.y = floorY - d.r;
+        if (Math.abs(d.vy) > 90) {
+          d.vy *= -RESTITUTION;
+        } else {
+          d.vy = 0;
+          d.settled = true;
+        }
+        d.vx *= FRICTION;
+        d.vrot *= 0.5;
+      }
+    }
+
+    // pairwise collision resolution (circle vs circle) via a uniform-grid
+    // spatial hash so this stays cheap even as the pile grows into the
+    // thousands — only neighboring buckets are checked, not every pair.
+    const buckets = new Map();
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      d._cx = Math.floor(d.x / CELL_SIZE);
+      d._cy = Math.floor(d.y / CELL_SIZE);
+      const key = d._cx + ',' + d._cy;
+      let bucket = buckets.get(key);
+      if (!bucket) { bucket = []; buckets.set(key, bucket); }
+      bucket.push(i);
+    }
+
+    for (let i = 0; i < drops.length; i++) {
+      const a = drops[i];
+      for (let ox = -1; ox <= 1; ox++) {
+        for (let oy = -1; oy <= 1; oy++) {
+          const bucket = buckets.get((a._cx + ox) + ',' + (a._cy + oy));
+          if (!bucket) continue;
+          for (const j of bucket) {
+            if (j <= i) continue;
+            const b = drops[j];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+            const minDist = a.r + b.r;
+            if (dist < minDist) {
+              const overlap = (minDist - dist) / 2;
+              const nx = dx / dist, ny = dy / dist;
+              a.x -= nx * overlap;
+              a.y -= ny * overlap;
+              b.x += nx * overlap;
+              b.y += ny * overlap;
+
+              // a small impulse so the pile shifts to make room, then settles
+              const push = 0.18;
+              a.vx -= nx * push * 30;
+              b.vx += nx * push * 30;
+              if (ny > 0.5) { a.settled = false; }
+              if (ny < -0.5) { b.settled = false; }
+            }
+          }
+        }
+      }
+    }
+
+    for (const d of drops) {
+      d.el.style.transform =
+        `translate(-50%,-50%) translate(${d.x}px, ${d.y}px) rotate(${d.rot}deg)`;
+    }
+  }
+
+  function physicsLoop(now) {
+    if (!physicsRunning) return;
+    const dt = Math.min(0.032, (now - lastTime) / 1000 || 0.016);
+    lastTime = now;
+    stepPhysics(dt);
+    requestAnimationFrame(physicsLoop);
+  }
+
+  function clearDrops() {
+    drops.forEach(d => d.el.remove());
+    drops.length = 0;
+  }
+
+  function startSpring() {
+    stopSpring();
+    spawnTimer = setInterval(spawnDrop, 60);
+    if (!physicsRunning) {
+      physicsRunning = true;
+      lastTime = performance.now();
+      requestAnimationFrame(physicsLoop);
+    }
+  }
+
+  function stopSpring() {
+    if (spawnTimer) {
+      clearInterval(spawnTimer);
+      spawnTimer = null;
+    }
+  }
+
+  // ============================================================
+  // Screen 2: Grid (spiral letters)
+  // ============================================================
+
+  function spiralOrder(n) {
+    const order = [];
+    let top = 0, bottom = n - 1, left = 0, right = n - 1;
+    while (top <= bottom && left <= right) {
+      for (let c = left; c <= right; c++) order.push([top, c]);
+      top++;
+      for (let r = top; r <= bottom; r++) order.push([r, right]);
+      right--;
+      if (top <= bottom) {
+        for (let c = right; c >= left; c--) order.push([bottom, c]);
+        bottom--;
+      }
+      if (left <= right) {
+        for (let r = bottom; r >= top; r--) order.push([r, left]);
+        left++;
+      }
+    }
+    return order;
+  }
+
+  const cells = [];
+  const cellLetterMap = new Map(); // "row,col" -> letter
+  const revealed = new Set();
+
+  (function buildGrid() {
+    gridContainer.style.gridTemplateColumns = `repeat(${GRID_SIZE}, min(3.2vw, 3.2vh))`;
+    gridContainer.style.gridTemplateRows = `repeat(${GRID_SIZE}, min(3.2vw, 3.2vh))`;
+
+    const order = spiralOrder(GRID_SIZE);
+    order.forEach(([r, c], i) => {
+      cellLetterMap.set(r + ',' + c, GRID_STRING[i % GRID_STRING.length]);
+    });
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+
+        const letterEl = document.createElement('div');
+        letterEl.className = 'letter';
+        letterEl.textContent = cellLetterMap.get(r + ',' + c);
+        cell.appendChild(letterEl);
+
+        cell.addEventListener('mouseenter', () => {
+          if (gameOfLifeActive) {
+            forceAliveCell(cell);
+          } else {
+            revealCell(r, c, cell);
+          }
+        });
+
+        gridContainer.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+  })();
+
+  function revealCell(r, c, cell) {
+    const key = r + ',' + c;
+    if (revealed.has(key)) return;
+    revealed.add(key);
+    cell.classList.add('active');
+
+    if (revealed.size === GRID_SIZE * GRID_SIZE) {
+      clearTimeout(transitionTimer);
+      transitionTimer = setTimeout(goToColumns, 1000);
+    }
+  }
+
+  function forceAliveCell(cell) {
+    cell.classList.add('active');
+  }
+
+  function resetGrid() {
+    cells.forEach(c => c.classList.remove('active'));
+    revealed.clear();
+  }
+
+  // ============================================================
+  // Game of Life (triggered by clicking the title while on the grid)
+  // ============================================================
+
+  let gameOfLifeActive = false;
+  let gameOfLifeTimer = null;
+  const GAME_TICK_MS = 280; // slower, but not sluggish
+
+  function gameOfLifeTick() {
+    const alive = new Set();
+    cells.forEach(cell => {
+      if (cell.classList.contains('active')) {
+        alive.add(cell.dataset.r + ',' + cell.dataset.c);
+      }
+    });
+
+    const next = new Set();
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        let n = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE &&
+                alive.has(nr + ',' + nc)) n++;
+          }
+        }
+        const isAlive = alive.has(r + ',' + c);
+        if ((isAlive && (n === 2 || n === 3)) || (!isAlive && n === 3)) {
+          next.add(r + ',' + c);
+        }
+      }
+    }
+
+    cells.forEach(cell => {
+      const key = cell.dataset.r + ',' + cell.dataset.c;
+      cell.classList.toggle('active', next.has(key));
+    });
+  }
+
+  function startGameOfLife() {
+    clearTimeout(transitionTimer);
+    gameOfLifeActive = true;
+    gridContainer.classList.add('no-anim');
+    gameOfLifeTimer = setInterval(gameOfLifeTick, GAME_TICK_MS);
+  }
+
+  function stopGameOfLife() {
+    gameOfLifeActive = false;
+    gridContainer.classList.remove('no-anim');
+    clearInterval(gameOfLifeTimer);
+    gameOfLifeTimer = null;
+  }
+
+  title.addEventListener('click', () => {
+    if (screen !== 'grid') return;
+    if (!gameOfLifeActive) {
+      startGameOfLife();
+    } else {
+      stopGameOfLife();
+      goToColumns();
+    }
+  });
+
+  // ============================================================
+  // Screen transitions
+  // ============================================================
+
+  function goToGrid() {
+    stopSpring();
+    physicsRunning = false;
+    clearDrops();
+    resetColumns();
+    columnsScreen.style.display = 'none';
+    gridScreen.style.display = 'flex';
+    screen = 'grid';
+  }
+
+  function goToColumns() {
+    stopGameOfLife();
+    resetGrid();
+    gridScreen.style.display = 'none';
+    columnsScreen.style.display = 'block';
+    screen = 'columns';
+    startSpring();
+  }
+
+  // ============================================================
+  // Mouse / touch tracking
+  // ============================================================
+
+  function onMove(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursorDot.style.left = mouseX + 'px';
+    cursorDot.style.top = mouseY + 'px';
+
+    if (screen === 'columns') {
+      const idx = indexFromX(mouseX);
+      activateSector(idx);
+    } else if (screen === 'grid') {
+      // touch devices never fire mouseenter on the cell underneath the
+      // finger, so probe via elementFromPoint to reveal it manually
+      const el = document.elementFromPoint(mouseX, mouseY);
+      if (el && el.classList && el.classList.contains('cell')) {
+        if (gameOfLifeActive) {
+          forceAliveCell(el);
+        } else {
+          revealCell(Number(el.dataset.r), Number(el.dataset.c), el);
+        }
+      }
+    }
+  }
+
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseenter', () => {
+    if (screen === 'columns') startSpring();
+  });
+  window.addEventListener('mouseleave', () => {
+    stopSpring();
+    currentIndex = -1;
+  });
+
+  // Touch support
+  window.addEventListener('touchstart', (e) => {
+    if (screen === 'columns') startSpring();
+    const t = e.touches[0];
+    onMove({ clientX: t.clientX, clientY: t.clientY });
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    onMove({ clientX: t.clientX, clientY: t.clientY });
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    stopSpring();
+    currentIndex = -1;
+  });
+
+  startSpring();
+})();
+</script>
+</body>
+</html>
