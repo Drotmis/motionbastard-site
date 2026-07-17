@@ -1,737 +1,751 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOTIONBASTARD</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #000;
-    cursor: none;
-  }
-
-  #columnsScreen, #gridScreen {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  #gridScreen {
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #sectors {
-    width: 100%;
-    height: 100%;
-    display: flex;
-  }
-  .sector {
-    flex: 1 1 0;
-    height: 100%;
-    background: #000;
-    position: relative;
-    transition: background-color 0.18s ease-out;
-    border-right: 1px solid rgba(255,255,255,0.05);
-  }
-  .sector:last-child { border-right: none; }
-  .sector.active {
-    background: #fff;
-  }
-  .sector .letter {
-    position: absolute;
-    top: 6%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px) scale(0.7);
-    font-family: 'Arial Black', Helvetica, sans-serif;
-    font-weight: 900;
-    font-size: clamp(20px, 4vw, 56px);
-    color: #000;
-    opacity: 0;
-    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
-    letter-spacing: 2px;
-    pointer-events: none;
-    user-select: none;
-  }
-  .sector.active .letter {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
-  #gridContainer {
-    display: grid;
-    gap: 2px;
-  }
-
-  .cell {
-    width: min(3.2vw, 3.2vh);
-    height: min(3.2vw, 3.2vh);
-    background: #000;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.15s ease-out;
-  }
-  .cell.active {
-    background: #fff;
-  }
-  .cell .letter {
-    font-family: 'Arial Black', Helvetica, sans-serif;
-    font-weight: 900;
-    font-size: min(1.4vw, 1.4vh);
-    color: #000;
-    opacity: 0;
-    transition: opacity 0.2s ease-out;
-    text-transform: lowercase;
-    user-select: none;
-    pointer-events: none;
-  }
-  /* Game of Life: hard on/off squares, no fade/cross-blend mid-toggle */
-  #gridContainer.no-anim .cell,
-  #gridContainer.no-anim .cell .letter {
-    transition: none;
-  }
-  .cell.active .letter {
-    opacity: 1;
-  }
-
-  #particle-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 5;
-  }
-
-  .drop {
-    position: absolute;
-    font-family: 'Arial Black', Helvetica, sans-serif;
-    font-weight: 900;
-    will-change: transform, opacity;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  #title {
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 700;
-    letter-spacing: 6px;
-    font-size: 12px;
-    color: rgba(255,255,255,0.5);
-    mix-blend-mode: difference;
-    pointer-events: auto;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  #cursorDot {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #fff;
-    mix-blend-mode: difference;
-    pointer-events: none;
-    z-index: 20;
-    transform: translate(-50%, -50%);
-    transition: width 0.1s, height 0.1s;
-  }
-
-  #footer {
-    position: absolute;
-    bottom: 14px;
-    left: 0;
-    width: 100%;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
-    cursor: auto;
-  }
-  #footer a {
-    color: rgba(255,255,255,0.7);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 12px;
-    letter-spacing: 1px;
-    transition: color 0.2s ease-out;
-    mix-blend-mode: difference;
-  }
-  #footer a:hover {
-    color: #fff;
-  }
-  #footer a svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-  }
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOTION B@STARD — experimental motion design studio</title>
+<meta name="description" content="Motion Bastard is an experimental motion design studio built on curiosity. First, play. Then work… maybe.">
+<link rel="icon" type="image/png" href="assets/badge.png">
+<meta property="og:title" content="MOTION B@STARD">
+<meta property="og:description" content="An experimental motion design studio. First, play. Then work… maybe.">
+<meta property="og:url" content="https://motionbastard.com">
+<script src="./support.js"></script>
 </head>
 <body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#EEE9E5}
+a{color:inherit;text-decoration:none}
+a:hover{opacity:.8}
+::selection{background:#0A0A0A;color:#EEE9E5}
+</style>
+</helmet>
+<div id="top" ref="{{ setRoot }}" style="background:#EEE9E5;color:#0A0A0A;font-family:'Space Mono',monospace;overflow-x:hidden;min-height:100vh;position:relative">
+  <div data-follower="" style="position:fixed;left:0;top:0;z-index:100;pointer-events:none;display:none;font-family:'Space Mono',monospace;font-weight:700;font-size:26px;line-height:1;color:#EEE9E5;mix-blend-mode:difference">✱</div>
+  <header style="position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:14px 28px">
+    <a href="#top" style="display:inline-block;transform:rotate(-3deg)"><img src="assets/badge.png" alt="MOB@ — Motion Bastard" style="display:block;height:46px"></a>
+    <nav style="display:flex;gap:24px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;mix-blend-mode:difference;color:#EEE9E5">
+      <a href="#machine" style="display:inline-block;transition:transform .15s" style-hover="transform:rotate(5deg)">The Machine</a>
+      <a href="#about" style="display:inline-block;transition:transform .15s" style-hover="transform:rotate(-5deg)">About</a>
+      <a href="#work" style="display:inline-block;transition:transform .15s" style-hover="transform:rotate(4deg)">Work</a>
+      <a href="#contact" style="display:inline-block;transition:transform .15s" style-hover="transform:rotate(-4deg)">Contact</a>
+    </nav>
+  </header>
 
-<div id="columnsScreen">
-  <div id="sectors"></div>
+  <section data-screen-label="Hero" style="position:relative;padding:110px 6vw 12px;display:flex;flex-direction:column;align-items:center;box-sizing:border-box">
+    <div data-photo-wrap="" style="position:absolute;right:26px;top:84px;width:110px;z-index:10;transform:rotate(-4deg);cursor:pointer;transition:width .35s cubic-bezier(.34,1.56,.64,1)">
+      <div data-balloon="" style="position:absolute;right:104%;top:-4px;width:220px;background:#FDFBF9;border:2.5px solid #0A0A0A;border-radius:14px 14px 3px 14px;padding:12px 14px;font-family:'Gochi Hand',cursive;font-size:17px;line-height:1.3;transform:rotate(-2deg);display:none;box-shadow:4px 5px 0 rgba(10,10,10,.9);z-index:11"><span data-phrase="">dada means nothing.</span><span style="position:absolute;right:-9px;top:24px;width:14px;height:14px;background:#FDFBF9;border-right:2.5px solid #0A0A0A;border-top:2.5px solid #0A0A0A;transform:rotate(45deg)"></span></div>
+      <div style="position:relative;background:#FDFBF9;padding:8px 8px 9px;box-shadow:7px 9px 0 rgba(10,10,10,0.9)">
+        <div style="position:relative">
+          <img src="assets/fist.jpg" alt="A fist with two eyes drawn on it — the Motion Bastard mascot" style="display:block;width:100%">
+          <div data-eye="" style="position:absolute;left:48.4%;top:36.2%;width:7.8%;aspect-ratio:1.06;background:#F2EEE9;border:2px solid #141210;border-radius:47% 53% 44% 56% / 58% 42% 61% 39%;transform:rotate(-6deg)">
+            <span data-pupil="" style="position:absolute;left:50%;top:50%;width:42%;height:44%;background:#141210;border-radius:56% 44% 61% 39% / 48% 52% 42% 58%;transform:translate(-50%,-50%)"></span>
+          </div>
+          <div data-eye="" style="position:absolute;left:57.5%;top:37.6%;width:7.2%;aspect-ratio:0.94;background:#F2EEE9;border:2px solid #141210;border-radius:55% 45% 58% 42% / 44% 56% 40% 60%;transform:rotate(7deg)">
+            <span data-pupil="" style="position:absolute;left:50%;top:50%;width:44%;height:40%;background:#141210;border-radius:44% 56% 39% 61% / 58% 42% 62% 38%;transform:translate(-50%,-50%)"></span>
+          </div>
+        </div>
+        <div data-caption="" style="font-family:'Gochi Hand',cursive;font-size:10px;text-align:center;padding-top:6px;transform:rotate(-1deg)">our creative director.</div>
+      </div>
+    </div>
+    <img src="assets/wordmark.svg" alt="MOTION B@STARD" style="display:block;width:min(36vw,440px);margin:0 auto;transition:transform .18s cubic-bezier(.34,1.56,.64,1)" style-hover="transform:rotate(-1.5deg) scale(1.02)">
+    <div style="text-align:center;font-size:13px;letter-spacing:.08em;margin-top:18px">(an experimental motion design studio)</div>
+  </section>
+
+  <section id="machine" data-screen-label="The Machine" style="padding:48px 6vw 80px;position:relative;border-top:3px solid #0A0A0A;margin-top:56px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:clamp(22px,2.6vw,38px);line-height:1.05;text-transform:uppercase">First, <span style="font-family:'Gochi Hand',cursive;text-transform:none;display:inline-block;background:#0A0A0A;color:#EEE9E5;padding:0 12px 3px;transform:rotate(-2deg)">play.</span> <span style="font-weight:400;opacity:.6;font-size:.55em;text-transform:none">then work… maybe.</span></div>
+      <div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase">(01) — The Machine</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div style="font-size:12px;opacity:.75;max-width:62ch">pick a part → click the board → drag to nudge → START. right-click trashes a part. win → click the bucket for the next level. from lvl 2: parts are welded, limited, 5 lives.</div>
+      <div style="font-family:'Gochi Hand',cursive;font-size:24px;transform:rotate(1deg)">build a dumb machine. get the O in the bucket.</div>
+    </div>
+    <div data-part-palette="" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+      <button data-part="balloon" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(1.5deg)">* balloon</button>
+      <button data-part="rampA" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(-1deg)">\ ramp</button>
+      <button data-part="rampB" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(2deg)">/ ramp</button>
+      <button data-part="shelf" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(-2deg)">== shelf</button>
+      <button data-part="tramp" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(1deg)">mmm trampoline</button>
+      <button data-part="belt" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(-1.5deg)">&gt;&gt;&gt; conveyor</button>
+      <button data-part="fan" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(1deg)">~ fan</button>
+      <button data-part="crate" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(2deg)">[#] crate</button>
+      <button data-part="bomb" style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px solid #0A0A0A;padding:8px 14px;cursor:pointer;transform:rotate(-2deg)">(!) bomb ×1</button>
+    </div>
+    <div style="position:relative;border:3px solid #0A0A0A;box-shadow:8px 10px 0 rgba(10,10,10,.9);background:#F4F0EC">
+      <canvas data-game-canvas="" style="display:block;width:100%;height:440px;touch-action:none;cursor:crosshair"></canvas>
+      <div data-win="" style="position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) rotate(-4deg);text-align:center;font-family:'Gochi Hand',cursive;font-size:clamp(36px,5vw,72px);background:#0A0A0A;color:#EEE9E5;padding:10px 34px;display:none;pointer-events:none">IT MOVES!!!<div data-win-sub="" style="font-family:'Space Mono',monospace;font-size:14px;text-transform:uppercase;letter-spacing:.1em;padding-bottom:6px">click the bucket → lvl 2</div></div>
+      <div data-msg="" style="position:absolute;left:50%;top:14px;transform:translateX(-50%) rotate(-1deg);font-family:'Gochi Hand',cursive;font-size:24px;background:#0A0A0A;color:#EEE9E5;padding:6px 20px;display:none;pointer-events:none;white-space:nowrap"></div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px">
+<button data-game-start="" style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.06em;background:#0A0A0A;color:#EEE9E5;border:3px solid #0A0A0A;padding:12px 30px;cursor:pointer;transform:rotate(-1.5deg);transition:transform .15s" style-hover="transform:rotate(-1.5deg) scale(1.05)">▶ Start</button>
+      <button data-game-clear="" style="font-family:'Space Mono',monospace;font-size:14px;text-transform:uppercase;background:#EEE9E5;color:#0A0A0A;border:3px dashed #0A0A0A;padding:12px 22px;cursor:pointer;transform:rotate(-1deg)">Clear my parts</button>
+      <label style="display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border:3px solid #0A0A0A;padding:10px 16px;transform:rotate(1deg)">speed <input data-game-speed="" type="range" min="0.15" max="1.2" step="0.05" defaultValue="0.45" style="accent-color:#0A0A0A;width:120px"></label>
+<div data-hud="" style="margin-left:auto;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:2.5px solid #0A0A0A;padding:8px 16px;transform:rotate(1deg)">LVL 1 · parts ∞ · lives ∞</div>
+    </div>
+  </section>
+
+  <section id="about" data-screen-label="About" style="padding:16vh 7vw;position:relative;border-top:3px solid #0A0A0A">
+    <div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:52px">(02) — Who we are</div>
+    <p data-manifesto="" style="margin:0;font-family:'Space Mono',monospace;font-weight:700;font-size:clamp(22px,3.4vw,52px);line-height:1.3;text-transform:uppercase;max-width:1200px">
+      <span data-word="" style="display:inline-block">Motion</span> <span data-word="" style="display:inline-block">Bastard</span> <span data-word="" style="display:inline-block">is</span> <span data-word="" style="display:inline-block">an</span> <span data-word="" style="display:inline-block">experimental</span> <span data-word="" style="display:inline-block">motion</span> <span data-word="" style="display:inline-block">design</span> <span data-word="" style="display:inline-block">studio</span> <span data-word="" style="display:inline-block">built</span> <span data-word="" style="display:inline-block">on</span> <span data-word="" style="display:inline-block;font-family:'Gochi Hand',cursive;text-transform:none;background:#0A0A0A;color:#EEE9E5;padding:0 12px 3px;transform:rotate(-2deg)">curiosity.</span> <span data-word="" style="display:inline-block">We</span> <span data-word="" style="display:inline-block">explore</span> <span data-word="" style="display:inline-block">aesthetics,</span> <span data-word="" style="display:inline-block">take</span> <span data-word="" style="display:inline-block">chances</span> <span data-word="" style="display:inline-block">on</span> <span data-word="" style="display:inline-block;font-family:'Gochi Hand',cursive;text-transform:none;background:#0A0A0A;color:#EEE9E5;padding:0 12px 3px;transform:rotate(1.5deg)">wild ideas,</span> <span data-word="" style="display:inline-block">and</span> <span data-word="" style="display:inline-block">find</span> <span data-word="" style="display:inline-block">ways</span> <span data-word="" style="display:inline-block">to</span> <span data-word="" style="display:inline-block">make</span> <span data-word="" style="display:inline-block">things</span> <span data-word="" style="display:inline-block;font-family:'Gochi Hand',cursive;text-transform:none;background:#0A0A0A;color:#EEE9E5;padding:0 12px 3px;transform:rotate(-2deg)">move.</span>
+    </p>
+    <div style="margin-top:56px;font-size:14px;opacity:.75">(that's the whole pitch)</div>
+  </section>
+
+  <section id="work" data-screen-label="Work" style="padding:12vh 7vw 14vh;position:relative;border-top:3px solid #0A0A0A">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:48px">
+      <div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase">(03) — Work</div>
+      <div style="font-family:'Gochi Hand',cursive;font-size:24px;transform:rotate(-1deg)">proof that we occasionally finish things.</div>
+    </div><div style="display:flex;flex-direction:column;gap:44px">
+      <div style="display:flex;flex-direction:column;gap:12px;transform:rotate(-0.6deg);max-width:820px;width:100%;align-self:center">
+        <div style="border:3px solid #0A0A0A;box-shadow:7px 9px 0 rgba(10,10,10,.9);background:#0A0A0A">
+          <div style="padding:100% 0 0 0;position:relative"><iframe src="https://player.vimeo.com/video/477233179?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%" title="Ya No Te Extraño - Animation Video Clip"></iframe></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <span style="font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em">I don't miss you anymore</span>
+          <span style="font-family:'Gochi Hand',cursive;font-size:16px;opacity:.75">video clip</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:34px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:12px;transform:rotate(0.7deg)">
+        <div style="border:3px solid #0A0A0A;box-shadow:7px 9px 0 rgba(10,10,10,.9);background:#0A0A0A">
+          <div style="padding:177.78% 0 0 0;position:relative"><iframe src="https://player.vimeo.com/video/1041150863?h=a3c5511dbf&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%" title="Stop Motion Jazmin Chebar Dic 24"></iframe></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <span style="font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em">Jazmin Chebar</span>
+          <span style="font-family:'Gochi Hand',cursive;font-size:16px;opacity:.75">papercraft ad</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;transform:rotate(-0.8deg)">
+        <div style="border:3px solid #0A0A0A;box-shadow:7px 9px 0 rgba(10,10,10,.9);background:#0A0A0A">
+          <div style="padding:177.78% 0 0 0;position:relative"><iframe src="https://player.vimeo.com/video/803456005?h=d9743e2391&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%" title="Story BlackBard"></iframe></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <span style="font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em">Blackboard</span>
+          <span style="font-family:'Gochi Hand',cursive;font-size:16px;opacity:.75">stopmotion play</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;transform:rotate(0.5deg)">
+        <div style="border:3px solid #0A0A0A;box-shadow:7px 9px 0 rgba(10,10,10,.9);background:#0A0A0A">
+          <div style="padding:177.78% 0 0 0;position:relative"><iframe src="https://player.vimeo.com/video/1042188773?h=2f008bb75f&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%" title="Resolucion_Ig Story"></iframe></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <span style="font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em">Printing resolutions</span>
+          <span style="font-family:'Gochi Hand',cursive;font-size:16px;opacity:.75">exploration</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" data-screen-label="Contact" style="background:#0A0A0A;color:#EEE9E5;padding:16vh 7vw 36px;position:relative">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px">
+      <div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase">(04) — Say hi</div>
+      <img src="assets/badge-light.svg" alt="MOB@" style="width:120px;transform:rotate(7deg)">
+    </div>
+    <div style="display:flex;gap:18px;margin:36px 0 44px">
+      <span data-eye="" style="position:relative;display:inline-block;width:88px;height:94px;background:#EEE9E5;border-radius:47% 53% 44% 56% / 58% 42% 61% 39%;transform:rotate(-5deg)"><span data-pupil="" style="position:absolute;left:50%;top:50%;width:40%;height:42%;background:#0A0A0A;border-radius:56% 44% 61% 39% / 48% 52% 42% 58%;transform:translate(-50%,-50%)"></span></span>
+      <span data-eye="" style="position:relative;display:inline-block;width:94px;height:86px;background:#EEE9E5;border-radius:55% 45% 58% 42% / 44% 56% 40% 60%;transform:rotate(6deg)"><span data-pupil="" style="position:absolute;left:50%;top:50%;width:42%;height:38%;background:#0A0A0A;border-radius:44% 56% 39% 61% / 58% 42% 62% 38%;transform:translate(-50%,-50%)"></span></span>
+    </div>
+    <h2 style="margin:0;font-family:'Space Mono',monospace;font-weight:700;font-size:clamp(30px,5vw,76px);line-height:1.1;text-transform:uppercase">Let's make<br>something <span style="font-family:'Gochi Hand',cursive;text-transform:none;display:inline-block;transform:rotate(-2deg)">move.</span></h2>
+    <a href="mailto:locomotorafilms@gmail.com" style="display:inline-block;margin-top:56px;font-family:'Gochi Hand',cursive;font-size:clamp(24px,3.4vw,46px);border-bottom:3px solid #EEE9E5;transition:transform .18s cubic-bezier(.34,1.56,.64,1)" style-hover="transform:rotate(-2deg) scale(1.04)">drop us an email →</a>
+    <div style="margin-top:22px;font-size:15px"><a href="https://www.instagram.com/motion.bastard/" target="_blank" rel="noopener">instagram → @motion.bastard</a></div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14vh;font-size:12px;opacity:.7;letter-spacing:.06em">
+      <span>© 2026 MOTION BASTARD</span>
+      <span>an experimental motion design studio</span>
+      <span>(it stares back)</span>
+    </div>
+  </section>
 </div>
-
-<div id="gridScreen">
-  <div id="gridContainer"></div>
-</div>
-
-<div id="particle-layer"></div>
-<div id="cursorDot"></div>
-<div id="title">MOTIONBASTARD</div>
-
-<div id="footer">
-  <a href="mailto:locomotorafilms@gmail.com" aria-label="Email">
-    <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 6l9 7 9-7"/></svg>
-  </a>
-  <a href="https://www.instagram.com/motion.bastard" target="_blank" rel="noopener" aria-label="Instagram">
-    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
-  </a>
-  <a href="https://contra.com/diegorotmistrovsky" target="_blank" rel="noopener">See work and important stuff</a>
-</div>
-
-<script>
-(function () {
-  const WORD = "MOTIONBASTARD";
-  const GRID_SIZE = 25;
-  const GRID_STRING = "motionbastard";
-
-  const columnsScreen = document.getElementById('columnsScreen');
-  const gridScreen = document.getElementById('gridScreen');
-  const sectorsContainer = document.getElementById('sectors');
-  const gridContainer = document.getElementById('gridContainer');
-  const particleLayer = document.getElementById('particle-layer');
-  const cursorDot = document.getElementById('cursorDot');
-  const title = document.getElementById('title');
-
-  let screen = 'columns'; // 'columns' | 'grid'
-
-  // ============================================================
-  // Screen 1: Columns
-  // ============================================================
-
-  const sectors = [];
-
-  WORD.split('').forEach((letter, i) => {
-    const sector = document.createElement('div');
-    sector.className = 'sector';
-    sector.dataset.index = i;
-    sector.dataset.letter = letter;
-
-    const letterEl = document.createElement('div');
-    letterEl.className = 'letter';
-    letterEl.textContent = letter;
-    sector.appendChild(letterEl);
-
-    sectorsContainer.appendChild(sector);
-    sectors.push(sector);
-  });
-
-  let currentIndex = -1;
-  let mouseX = 0, mouseY = 0;
-  let spawnTimer = null;
-  let transitionTimer = null;
-  const activated = new Set();
-
-  function indexFromX(x) {
-    const w = window.innerWidth / sectors.length;
-    let idx = Math.floor(x / w);
-    if (idx < 0) idx = 0;
-    if (idx > sectors.length - 1) idx = sectors.length - 1;
-    return idx;
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;chaos&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:0.9,&quot;min&quot;:0.1,&quot;max&quot;:1.5,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;cursorBuddy&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { setRoot: (el) => { this._root = el; } };
   }
-
-  function activateSector(idx) {
-    currentIndex = idx;
-    if (!activated.has(idx)) {
-      activated.add(idx);
-      sectors[idx].classList.add('active');
-
-      if (activated.size === sectors.length) {
-        clearTimeout(transitionTimer);
-        transitionTimer = setTimeout(goToGrid, 1000);
-      }
-    }
+  chaos() { return this.props.chaos ?? 0.9; }
+  componentDidMount() {
+    const root = this._root; if (!root) return;
+    this.M = { x: innerWidth / 2, y: innerHeight / 2 };
+    this.fol = { x: this.M.x, y: this.M.y, rot: 0 };
+    this.eyes = [...root.querySelectorAll('[data-eye]')].map((el) => ({ el, p: el.querySelector('[data-pupil]'), base: el.style.transform || '', closed: false }));
+    this.para = root.querySelector('[data-manifesto]');
+    this.words = [...root.querySelectorAll('[data-word]')];
+    this.words.forEach((w) => {
+      w._rot = (w.style.transform || '');
+      w.style.transition = 'opacity .45s ease, transform .45s ease';
+      w.style.opacity = '0.13';
+      w.style.transform = w._rot + ' translateY(12px)';
+      w._on = false;
+    });
+    this.follower = root.querySelector('[data-follower]');
+    this._pm = (e) => { this.M.x = e.clientX; this.M.y = e.clientY; };
+    window.addEventListener('pointermove', this._pm);
+    this.canHover = matchMedia('(hover:hover)').matches;
+    this.setupDada(root);
+    this.setupGame(root);
+    this._raf = requestAnimationFrame(() => this.tick());
   }
-
-  function resetColumns() {
-    sectors.forEach(s => s.classList.remove('active'));
-    activated.clear();
-    currentIndex = -1;
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf);
+    window.removeEventListener('pointermove', this._pm);
+    if (this._dadaTimer) clearTimeout(this._dadaTimer);
   }
-
-  // --- Procedural falling-letter physics system ---
-  // Each letter is a simple circle body: gravity + floor collision + pairwise
-  // collision resolution against every other resting/falling letter. No
-  // physics library — this is the whole simulation.
-
-  const GRAVITY = 2400;       // px / s^2 - heavier fall
-  const FLOOR_MARGIN = 56;    // keep the pile above the footer
-  const MAX_DROPS = 3000;     // high enough to let the pile fill the screen
-  const CELL_SIZE = 56;       // spatial-hash bucket size for broad-phase collision (>= biggest hitbox)
-  const RESTITUTION = 0.02;   // floor bounce energy retained - almost no bounce
-  const FRICTION = 0.8;       // horizontal damping per frame - settles fast, less skidding
-  const MAX_SPEED = 500;      // clamp so collision impulses can't make letters fly
-  const REST_SPEED = 6;       // below this px/s a letter counts as "at rest"
-  const FREEZE_AFTER = 3000;  // ms a letter must stay at rest before it locks in place
-
-  const drops = [];
-  let physicsRunning = false;
-  let lastTime = 0;
-
-  function isDesktopOrientation() {
-    // horizontal viewport (wider than tall) reads as desktop; vertical
-    // (taller than wide) reads as mobile/portrait
-    return window.innerWidth > window.innerHeight;
+  // ---------- dada mascot ----------
+  setupDada(root) {
+    this.photo = root.querySelector('[data-photo-wrap]');
+    this.balloon = root.querySelector('[data-balloon]');
+    this.phraseEl = root.querySelector('[data-phrase]');
+    this.captionEl = root.querySelector('[data-caption]');
+    if (!this.photo) return;
+    this.dada = [
+      'dada means nothing.',
+      'the machine dreams in circles.',
+      'logic is a scandal.',
+      'art is dead. keep moving.',
+      'i am a horse, sometimes a hat.',
+      'order = disorder; ego = non-ego.',
+      'the clock melts if you stare politely.',
+      'thought is made in the mouth.',
+      'everything one looks at is false.',
+      'a fist with eyes sees twice.',
+      'chance is the boss now.',
+      'the alphabet quit. good for it.',
+      'gravity is an opinion.',
+      'museums are where motion goes to nap.',
+      'i prefer the wrong answer, faster.',
+      'cut the idea in half. keep both.',
+      'the umbrella met the sewing machine. lovely.',
+      'noise is a color if you commit.',
+      'burn the manual, keep the smoke.',
+      'perfection is a typo.',
+      'the straight line is a coward.',
+      'yes = no, on tuesdays.',
+      'my other hand is a manifesto.',
+      'boredom is the only sin.',
+      'a chair is a very slow explosion.',
+      'meaning called. we let it ring.',
+      'the frame is a cage. shake it.',
+      'i collect silences and drop them.',
+      'up is negotiable.',
+      'the poem ate the poet. applause.',
+      'reason is a nightlight for adults.',
+      'we rehearse accidents.',
+      'a circle is an O that made it.',
+      'taste is fear wearing a tie.',
+      'the future arrives sideways.',
+      'i signed the sky. it\u2019s mine now.',
+      'rules are furniture. rearrange.',
+      'the eye blinks, the world reboots.',
+      'nonsense is muscle.',
+      'every wall is a door that gave up.',
+      'we put the chaos in order\u2019s chair.',
+      'speak spaghetti, think lightning.',
+      'the shortest path is a scribble.',
+      'destroy politely, rebuild rudely.',
+      'an idea per second, none of them safe.',
+      'the bucket is a metaphor. also a bucket.',
+      'clocks are wheels that gossip.',
+      'i move, therefore i mess.',
+      'anti-art is still on the guest list.',
+      'long live the ridiculous machine.',
+      'i am neither for nor against. i am moving.',
+      'the mirror refused. respect.',
+      'give me a typo and i\u2019ll build a religion.',
+      'symmetry is stage fright.',
+      'we sell nothing, twice.',
+      'the hand thinks faster than the head.',
+      'a manifesto a day keeps the meaning away.',
+      'i tuned my doubts. they sing now.',
+      'the scissors are the smartest critic.',
+      'glue first, ask never.',
+      'my portfolio is a rumor.',
+      'the void called back. left a voicemail.',
+      'punctuation is a leash!!!',
+      'we frame accidents and feed them.',
+      'a deadline is a dare.',
+      'the O rolls because it refuses corners.',
+      'i put wheels on a doubt.',
+      'serious is a costume. itchy one.',
+      'the manifesto wrote me.',
+      'shuffle the alphabet, keep the crumbs.',
+      'my compass points to whatever.',
+      'a good idea, ruined properly, is great.',
+      'we don\u2019t make sense. we make motion.',
+      'the ceiling is a floor with ambition.',
+      'i pledge allegiance to the scribble.',
+      'silence, but make it loud.',
+      'the recipe: remove the recipe.',
+      'every pixel is a tiny riot.',
+      'i archived my logic. no backups.',
+      'the fourth wall owed us money anyway.',
+      'a hat full of verbs, pick one.',
+      'straight faces bend eventually.',
+      'we rehearsed randomness until it was fresh.',
+      'the exit is a door drawn in chalk.',
+      'i only trust ideas that wobble.',
+      'grammar fainted. the poem kept going.',
+      'my muse is a malfunction.',
+      'the answer is a cartwheel.',
+      'art school? we went to art recess.',
+      'a blueprint of a sneeze.',
+      'the committee of chaos approves.',
+      'i signed my name wrong on purpose. it\u2019s better.',
+      'nothing is original, everything is loose.',
+      'the metronome joined the circus.',
+      'zero permission, full speed.',
+      'i alphabetized the noise. it escaped.',
+      'a polite riot is still a riot.',
+      'the bucket dreams of the O.',
+      'gravity works weekends too. shame.',
+      'i drew a circle and it left.',
+      'the plan is a paper boat. sail it.',
+      'reason knocked. we redecorated.',
+      'every error is a hidden door.',
+      'my favorite tool is oops.',
+      'the sketch is smarter than the final.',
+      'we speak fluent accident.',
+      'a monument to almost.',
+      'the ruler lied. trust the wobble.',
+      'i pay rent in ideas nobody asked for.',
+      'the future is a scribble we\u2019ll ink later.',
+      'yes to the wrong bus.',
+      'the eraser is a time machine.',
+      'i outsourced my sanity to a pigeon.',
+      'still life? no. very moving life.',
+      'the margin is the stage.',
+      'chaos, but with good kerning.',
+      'a hiccup, framed, is a masterpiece.',
+      'the studio is a verb.',
+      'i collect wrong turns. rare ones.',
+      'the obvious is out of stock.',
+      'clap for the glitch.',
+      'my five-year plan is a doodle.',
+      'the horizon is a loose thread. pull.',
+      'normal is a rounding error.',
+      'we ship nonsense on time.',
+      'the idea bit me first.',
+      'a ladder to the sideways.',
+      'edit until it giggles.',
+      'the brief said fly. we tripped beautifully.',
+      'stamp it: gloriously unnecessary.',
+      'the semicolon retired; good riddance.',
+      'i mistook the alarm for applause.',
+      'boredom files a complaint. denied.',
+      'the fist knows. ask the fist.',
+      'we water the weird daily.',
+      'perfection called. we let the machine answer.',
+      'a crooked frame fits a crooked world.',
+      'the muse clocked in late, drunk on static.',
+      'draft 1 forever.',
+      'the rules melted. we kept the puddle.',
+      'i speak in loading screens.',
+      'motion is the only honest opinion.'
+    ];
+    this._dadaTimer = null;
+    this.photo.addEventListener('click', () => {
+      if (this._dadaTimer) clearTimeout(this._dadaTimer);
+      this.photo.style.width = '170px';
+      if (this.captionEl) this.captionEl.style.fontSize = '13px';
+      if (!this._bag || !this._bag.length) this._bag = this.dada.map((_, i) => i).sort(() => Math.random() - 0.5);
+      this.phraseEl.textContent = this.dada[this._bag.pop()];
+      this.balloon.style.display = 'block';
+      this._dadaTimer = setTimeout(() => {
+        this.photo.style.width = '110px';
+        if (this.captionEl) this.captionEl.style.fontSize = '10px';
+        // shrink back after 10s
+        this.balloon.style.display = 'none';
+        this._dadaTimer = null;
+      }, 10000);
+    });
   }
-
-  function spawnDrop() {
-    if (screen !== 'columns' || currentIndex === -1) return;
-    const letter = sectors[currentIndex].dataset.letter;
-
-    const sizeScale = isDesktopOrientation() ? 2 : 1;
-    const size = (12 + Math.random() * 18) * 1.5 * sizeScale;
-    // hitbox is padded well beyond the glyph itself so letters keep more
-    // distance from each other and stack instead of slipping into gaps
-    const r = size * 0.65;
-
-    const el = document.createElement('div');
-    el.className = 'drop';
-    el.textContent = letter;
-    el.style.fontSize = size + 'px';
-    el.style.color = Math.random() < 0.5 ? '#ffffff' : '#e7e7e7';
-    particleLayer.appendChild(el);
-
-    const drop = {
-      el,
-      x: mouseX + (Math.random() - 0.5) * 14,
-      y: mouseY + (Math.random() - 0.5) * 10,
-      vx: (Math.random() - 0.5) * 60,
-      vy: Math.random() * 40,
-      r,
-      rot: (Math.random() - 0.5) * 60,
-      vrot: (Math.random() - 0.5) * 90,
-      restTime: 0,
-      frozen: false
-    };
-
-    if (drops.length >= MAX_DROPS) {
-      const oldest = drops.shift();
-      oldest.el.remove();
-    }
-    drops.push(drop);
-  }
-
-  function stepPhysics(dt) {
-    const floorY = window.innerHeight - FLOOR_MARGIN;
-    const minX = 0, maxX = window.innerWidth;
-
-    for (const d of drops) {
-      if (d.frozen) continue;
-
-      d.vy += GRAVITY * dt;
-
-      // clamp so accumulated collision impulses can't fling letters around
-      const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
-      if (speed > MAX_SPEED) {
-        const s = MAX_SPEED / speed;
-        d.vx *= s;
-        d.vy *= s;
-      }
-
-      d.x += d.vx * dt;
-      d.y += d.vy * dt;
-      d.vrot *= 0.99;
-      d.rot += d.vrot * dt;
-
-      // walls
-      if (d.x - d.r < minX) { d.x = minX + d.r; d.vx *= -0.4; }
-      if (d.x + d.r > maxX) { d.x = maxX - d.r; d.vx *= -0.4; }
-
-      // floor
-      if (d.y + d.r > floorY) {
-        d.y = floorY - d.r;
-        if (Math.abs(d.vy) > 90) {
-          d.vy *= -RESTITUTION;
-        } else {
-          d.vy = 0;
-        }
-        d.vx *= FRICTION;
-        d.vrot *= 0.5;
-      }
-    }
-
-    // pairwise collision resolution (circle vs circle) via a uniform-grid
-    // spatial hash so this stays cheap even as the pile grows into the
-    // thousands — only neighboring buckets are checked, not every pair.
-    const buckets = new Map();
-    for (let i = 0; i < drops.length; i++) {
-      const d = drops[i];
-      d._cx = Math.floor(d.x / CELL_SIZE);
-      d._cy = Math.floor(d.y / CELL_SIZE);
-      const key = d._cx + ',' + d._cy;
-      let bucket = buckets.get(key);
-      if (!bucket) { bucket = []; buckets.set(key, bucket); }
-      bucket.push(i);
-    }
-
-    for (let i = 0; i < drops.length; i++) {
-      const a = drops[i];
-      for (let ox = -1; ox <= 1; ox++) {
-        for (let oy = -1; oy <= 1; oy++) {
-          const bucket = buckets.get((a._cx + ox) + ',' + (a._cy + oy));
-          if (!bucket) continue;
-          for (const j of bucket) {
-            if (j <= i) continue;
-            const b = drops[j];
-            if (a.frozen && b.frozen) continue;
-
-            const dx = b.x - a.x, dy = b.y - a.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
-            const minDist = a.r + b.r;
-            if (dist < minDist) {
-              const overlap = minDist - dist;
-              const nx = dx / dist, ny = dy / dist;
-
-              // frozen bodies are immovable — only the other one yields
-              if (a.frozen) {
-                b.x += nx * overlap;
-                b.y += ny * overlap;
-                if (ny < -0.6 && b.vy > 0) { b.vy *= -RESTITUTION; if (Math.abs(b.vy) < 40) b.vy = 0; b.vx *= FRICTION; }
-                b.vx += nx * 0.08 * 30;
-                continue;
-              }
-              if (b.frozen) {
-                a.x -= nx * overlap;
-                a.y -= ny * overlap;
-                if (ny > 0.6 && a.vy > 0) { a.vy *= -RESTITUTION; if (Math.abs(a.vy) < 40) a.vy = 0; a.vx *= FRICTION; }
-                a.vx -= nx * 0.08 * 30;
-                continue;
-              }
-
-              const half = overlap / 2;
-              a.x -= nx * half;
-              a.y -= ny * half;
-              b.x += nx * half;
-              b.y += ny * half;
-
-              // vertical resting contact: kill the falling speed of whichever
-              // body is landing on top, like landing on the floor
-              if (ny < -0.6 && b.vy > 0) { b.vy *= -RESTITUTION; if (Math.abs(b.vy) < 40) b.vy = 0; b.vx *= FRICTION; }
-              if (ny > 0.6 && a.vy > 0) { a.vy *= -RESTITUTION; if (Math.abs(a.vy) < 40) a.vy = 0; a.vx *= FRICTION; }
-
-              // a small impulse so the pile shifts to make room, then settles
-              const push = 0.08;
-              a.vx -= nx * push * 30;
-              b.vx += nx * push * 30;
-            }
-          }
-        }
-      }
-    }
-
-    // freeze any letter that has stayed essentially motionless for a while
-    const restTimeMs = dt * 1000;
-    for (const d of drops) {
-      if (d.frozen) continue;
-      const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
-      if (speed < REST_SPEED) {
-        d.restTime += restTimeMs;
-        if (d.restTime >= FREEZE_AFTER) {
-          d.frozen = true;
-          d.vx = 0;
-          d.vy = 0;
-          d.vrot = 0;
-        }
+  // ---------- contraption game ----------
+  setupGame(root) {
+    this.cv = root.querySelector('[data-game-canvas]');
+    if (!this.cv) return;
+    this.gx = this.cv.getContext('2d');
+    this.winEl = root.querySelector('[data-win]');
+    this.winSub = root.querySelector('[data-win-sub]');
+    this.msgEl = root.querySelector('[data-msg]');
+    this.hudEl = root.querySelector('[data-hud]');
+    this.frame = 0;
+    this.level = 1;
+    this.lives = 5;
+    this.G = { parts: [], running: false, tool: 'rampA', won: false, drag: null, mouse: null, particles: [], budget: Infinity };
+    this.palBtns = [...root.querySelectorAll('[data-part]')];
+    this.palBtns.forEach((b) => b.addEventListener('click', () => { this.G.tool = b.getAttribute('data-part'); this.stylePalette(); }));
+    this.stylePalette();
+    this.speedEl = root.querySelector('[data-game-speed]');
+    this.startBtn = root.querySelector('[data-game-start]');
+    this.startBtn.addEventListener('click', () => {
+      if (this.G.running) {
+        this.G.running = false;
+        this.resetDynamics(); this.hideWin();
+        this.startBtn.textContent = '\u25B6 Start';
       } else {
-        d.restTime = 0;
-      }
-    }
-
-    for (const d of drops) {
-      d.el.style.transform =
-        `translate(-50%,-50%) translate(${d.x}px, ${d.y}px) rotate(${d.rot}deg)`;
-    }
-  }
-
-  function physicsLoop(now) {
-    if (!physicsRunning) return;
-    const dt = Math.min(0.032, (now - lastTime) / 1000 || 0.016);
-    lastTime = now;
-    stepPhysics(dt);
-    requestAnimationFrame(physicsLoop);
-  }
-
-  function clearDrops() {
-    drops.forEach(d => d.el.remove());
-    drops.length = 0;
-  }
-
-  function startSpring() {
-    stopSpring();
-    spawnTimer = setInterval(spawnDrop, 60);
-    if (!physicsRunning) {
-      physicsRunning = true;
-      lastTime = performance.now();
-      requestAnimationFrame(physicsLoop);
-    }
-  }
-
-  function stopSpring() {
-    if (spawnTimer) {
-      clearInterval(spawnTimer);
-      spawnTimer = null;
-    }
-  }
-
-  // ============================================================
-  // Screen 2: Grid (spiral letters)
-  // ============================================================
-
-  function spiralOrder(n) {
-    const order = [];
-    let top = 0, bottom = n - 1, left = 0, right = n - 1;
-    while (top <= bottom && left <= right) {
-      for (let c = left; c <= right; c++) order.push([top, c]);
-      top++;
-      for (let r = top; r <= bottom; r++) order.push([r, right]);
-      right--;
-      if (top <= bottom) {
-        for (let c = right; c >= left; c--) order.push([bottom, c]);
-        bottom--;
-      }
-      if (left <= right) {
-        for (let r = bottom; r >= top; r--) order.push([r, left]);
-        left++;
-      }
-    }
-    return order;
-  }
-
-  const cells = [];
-  const cellLetterMap = new Map(); // "row,col" -> letter
-  const revealed = new Set();
-
-  (function buildGrid() {
-    gridContainer.style.gridTemplateColumns = `repeat(${GRID_SIZE}, min(3.2vw, 3.2vh))`;
-    gridContainer.style.gridTemplateRows = `repeat(${GRID_SIZE}, min(3.2vw, 3.2vh))`;
-
-    const order = spiralOrder(GRID_SIZE);
-    order.forEach(([r, c], i) => {
-      cellLetterMap.set(r + ',' + c, GRID_STRING[i % GRID_STRING.length]);
-    });
-
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.r = r;
-        cell.dataset.c = c;
-
-        const letterEl = document.createElement('div');
-        letterEl.className = 'letter';
-        letterEl.textContent = cellLetterMap.get(r + ',' + c);
-        cell.appendChild(letterEl);
-
-        cell.addEventListener('mouseenter', () => {
-          if (gameOfLifeActive) {
-            forceAliveCell(cell);
-          } else {
-            revealCell(r, c, cell);
-          }
-        });
-
-        gridContainer.appendChild(cell);
-        cells.push(cell);
-      }
-    }
-  })();
-
-  function revealCell(r, c, cell) {
-    const key = r + ',' + c;
-    if (revealed.has(key)) return;
-    revealed.add(key);
-    cell.classList.add('active');
-
-    if (revealed.size === GRID_SIZE * GRID_SIZE) {
-      clearTimeout(transitionTimer);
-      transitionTimer = setTimeout(goToColumns, 1000);
-    }
-  }
-
-  function forceAliveCell(cell) {
-    cell.classList.add('active');
-  }
-
-  function resetGrid() {
-    cells.forEach(c => c.classList.remove('active'));
-    revealed.clear();
-  }
-
-  // ============================================================
-  // Game of Life (triggered by clicking the title while on the grid)
-  // ============================================================
-
-  let gameOfLifeActive = false;
-  let gameOfLifeTimer = null;
-  const GAME_TICK_MS = 280; // slower, but not sluggish
-
-  function gameOfLifeTick() {
-    const alive = new Set();
-    cells.forEach(cell => {
-      if (cell.classList.contains('active')) {
-        alive.add(cell.dataset.r + ',' + cell.dataset.c);
+        this.resetDynamics(); this.hideWin();
+        this.G.running = true;
+        this.runStart = performance.now();
+        this.startBtn.textContent = '\u21BA Reset';
       }
     });
-
-    const next = new Set();
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        let n = 0;
-        for (let dr = -1; dr <= 1; dr++) {
-          for (let dc = -1; dc <= 1; dc++) {
-            if (dr === 0 && dc === 0) continue;
-            const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE &&
-                alive.has(nr + ',' + nc)) n++;
-          }
-        }
-        const isAlive = alive.has(r + ',' + c);
-        if ((isAlive && (n === 2 || n === 3)) || (!isAlive && n === 3)) {
-          next.add(r + ',' + c);
+    root.querySelector('[data-game-clear]').addEventListener('click', () => {
+      this.G.parts = this.G.parts.filter((p) => p.locked || p.type === 'goal');
+      this.G.budget = this.levelBudget(this.level);
+      this.stopRun(); this.hideWin(); this.updateHud();
+    });
+    const pos = (e) => { const r = this.cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    this.cv.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const m = pos(e), hit = this.hitPart(m.x, m.y);
+      if (this.G.won && hit && hit.type === 'goal') { this.nextLevel(); return; }
+      if (this.G.running) return;
+      if (hit) {
+        if (hit.locked && this.level > 1) { this.msg('welded down. no touchy.'); return; }
+        this.G.drag = { p: hit, dx: m.x - hit.x, dy: m.y - hit.y }; this.cv.setPointerCapture(e.pointerId);
+      } else {
+        if (this.level > 1 && this.G.budget <= 0) { this.msg('no parts left!!'); return; }
+        if (this.G.tool === 'bomb' && this.G.parts.some((q) => q.type === 'bomb')) { this.msg('one bomb per machine!!'); return; }
+        if (this.G.parts.length < 60) {
+          this.G.parts.push(this.makePart(this.G.tool, m.x, m.y));
+          if (this.level > 1) { this.G.budget--; this.updateHud(); }
         }
       }
-    }
-
-    cells.forEach(cell => {
-      const key = cell.dataset.r + ',' + cell.dataset.c;
-      cell.classList.toggle('active', next.has(key));
     });
+    this.cv.addEventListener('pointermove', (e) => {
+      const m = pos(e); this.G.mouse = m;
+      if (this.G.drag) { this.G.drag.p.x = m.x - this.G.drag.dx; this.G.drag.p.y = m.y - this.G.drag.dy; this.resetDynamic(this.G.drag.p); }
+    });
+    this.cv.addEventListener('pointerup', () => { this.G.drag = null; });
+    this.cv.addEventListener('pointerleave', () => { this.G.mouse = null; });
+    this.cv.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (this.G.running) return;
+      const m = pos(e), hit = this.hitPart(m.x, m.y);
+      if (hit && hit.type !== 'goal' && !hit.locked) {
+        this.G.parts = this.G.parts.filter((p) => p !== hit);
+        if (this.level > 1) { this.G.budget++; this.updateHud(); }
+      }
+    });
+    this.loadLevel(1);
   }
-
-  function startGameOfLife() {
-    clearTimeout(transitionTimer);
-    gameOfLifeActive = true;
-    gridContainer.classList.add('no-anim');
-    gameOfLifeTimer = setInterval(gameOfLifeTick, GAME_TICK_MS);
+  levelBudget(n) { return [Infinity, Infinity, 5, 5, 4, 4, 3, 3, 3, 2, 2][n]; }
+  levelDef(n, w, h) {
+    const P = (type, fx, fy) => { const p = this.makePart(type, fx * w, fy * h); if (n > 1) p.locked = true; return p; };
+    switch (n) {
+      case 1: return [P('ball', 0.15, 0.1), P('rampA', 0.19, 0.35), P('belt', 0.34, 0.56), P('goal', 0.47, 0.78)];
+      case 2: return [P('ball', 0.15, 0.1), P('rampA', 0.19, 0.35), P('goal', 0.55, 0.85)];
+      case 3: return [P('ball', 0.12, 0.1), P('goal', 0.6, 0.85)];
+      case 4: return [P('ball', 0.85, 0.1), P('rampB', 0.81, 0.35), P('goal', 0.45, 0.85)];
+      case 5: return [P('ball', 0.12, 0.1), P('shelf', 0.25, 0.4), P('goal', 0.75, 0.85)];
+      case 6: return [P('ball', 0.12, 0.1), P('crate', 0.45, 0.6), P('goal', 0.8, 0.85)];
+      case 7: return [P('ball', 0.88, 0.1), P('goal', 0.2, 0.85)];
+      case 8: return [P('ball', 0.5, 0.08), P('crate', 0.4, 0.55), P('crate', 0.6, 0.55), P('goal', 0.12, 0.85)];
+      case 9: return [P('ball', 0.12, 0.1), P('shelf', 0.3, 0.35), P('crate', 0.6, 0.7), P('goal', 0.88, 0.85)];
+      case 10: return [P('ball', 0.5, 0.08), P('goal', 0.5, 0.85), P('crate', 0.42, 0.62), P('crate', 0.58, 0.62)];
+      default: return [];
+    }
   }
-
-  function stopGameOfLife() {
-    gameOfLifeActive = false;
-    gridContainer.classList.remove('no-anim');
-    clearInterval(gameOfLifeTimer);
-    gameOfLifeTimer = null;
+  loadLevel(n) {
+    this.level = n;
+    const w = this.cv.clientWidth || 900, h = this.cv.clientHeight || 440;
+    this.G.parts = this.levelDef(n, w, h);
+    this.G.budget = this.levelBudget(n);
+    this.G.particles = [];
+    this.stopRun(); this.hideWin(); this.updateHud();
   }
-
-  title.addEventListener('click', () => {
-    if (screen !== 'grid') return;
-    if (!gameOfLifeActive) {
-      startGameOfLife();
+  stopRun() { this.G.running = false; if (this.startBtn) this.startBtn.textContent = '\u25B6 Start'; this.resetDynamics(); }
+  updateHud() {
+    if (!this.hudEl) return;
+    const parts = this.level > 1 ? this.G.budget : '\u221E';
+    const lives = this.level > 1 ? '\u2665'.repeat(Math.max(0, this.lives)) : '\u221E';
+    this.hudEl.textContent = `LVL ${this.level} \u00B7 parts ${parts} \u00B7 lives ${lives}`;
+  }
+  msg(txt) {
+    if (!this.msgEl) return;
+    this.msgEl.textContent = txt;
+    this.msgEl.style.display = 'block';
+    clearTimeout(this._msgT);
+    this._msgT = setTimeout(() => { this.msgEl.style.display = 'none'; }, 2600);
+  }
+  nextLevel() {
+    if (this.level === 1) this.lives = 5;
+    if (this.level >= 10) {
+      this.msg('ALL 10 LEVELS. total bastard. \u2665');
+      this.lives = 5;
+      this.loadLevel(1);
+      return;
+    }
+    this.loadLevel(this.level + 1);
+    this.msg(`lvl ${this.level}. parts are limited now.`);
+  }
+  failRun(why) {
+    this.stopRun();
+    if (this.level > 1) {
+      this.lives--;
+      if (this.lives <= 0) {
+        this.msg('out of lives. back to lvl 1, bastard.');
+        this.lives = 5;
+        this.loadLevel(1);
+        return;
+      }
+      this.msg((why || 'nope.') + ` \u22121 life (${this.lives} left)`);
+      this.updateHud();
     } else {
-      stopGameOfLife();
-      goToColumns();
+      this.msg(why || 'nothing landed. rearrange!!');
     }
-  });
-
-  // ============================================================
-  // Screen transitions
-  // ============================================================
-
-  function goToGrid() {
-    stopSpring();
-    physicsRunning = false;
-    clearDrops();
-    resetColumns();
-    columnsScreen.style.display = 'none';
-    gridScreen.style.display = 'flex';
-    screen = 'grid';
   }
-
-  function goToColumns() {
-    stopGameOfLife();
-    resetGrid();
-    gridScreen.style.display = 'none';
-    columnsScreen.style.display = 'block';
-    screen = 'columns';
-    startSpring();
+  makePart(type, x, y) {
+    const p = { type, x, y };
+    if (type === 'ball' || type === 'balloon') { p.px = x; p.py = y; p.vx = 0; p.vy = 0; p.r = type === 'ball' ? 13 : 15; }
+    return p;
   }
-
-  // ============================================================
-  // Mouse / touch tracking
-  // ============================================================
-
-  function onMove(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.left = mouseX + 'px';
-    cursorDot.style.top = mouseY + 'px';
-
-    if (screen === 'columns') {
-      const idx = indexFromX(mouseX);
-      activateSector(idx);
-    } else if (screen === 'grid') {
-      // touch devices never fire mouseenter on the cell underneath the
-      // finger, so probe via elementFromPoint to reveal it manually
-      const el = document.elementFromPoint(mouseX, mouseY);
-      if (el && el.classList && el.classList.contains('cell')) {
-        if (gameOfLifeActive) {
-          forceAliveCell(el);
-        } else {
-          revealCell(Number(el.dataset.r), Number(el.dataset.c), el);
+  resetDynamic(p) { if (p.px !== undefined) { p.px = p.x; p.py = p.y; p.vx = 0; p.vy = 0; p._floored = false; } }
+  resetDynamics() { this.G.parts.forEach((p) => { this.resetDynamic(p); if (p.type === 'bomb') { p.exploded = false; p.boomAt = 0; } }); this.G.won = false; this.G.particles = []; }
+  hideWin() { this.G.won = false; if (this.winEl) this.winEl.style.display = 'none'; }
+  hitPart(x, y) {
+    for (let i = this.G.parts.length - 1; i >= 0; i--) {
+      const p = this.G.parts[i];
+      if (Math.abs(x - p.x) < 55 && Math.abs(y - p.y) < 55) return p;
+    }
+    return null;
+  }
+  segsFor(p) {
+    const S = (x1, y1, x2, y2, rest, conv) => ({ x1: p.x + x1, y1: p.y + y1, x2: p.x + x2, y2: p.y + y2, rest, conv: conv || 0 });
+    switch (p.type) {
+      case 'rampA': return [S(-50, -50, 50, 50, 0.15)];
+      case 'rampB': return [S(-50, 50, 50, -50, 0.15)];
+      case 'shelf': return [S(-55, 0, 55, 0, 0.15)];
+      case 'tramp': return [S(-45, 0, 45, 0, 1.35)];
+      case 'belt': return [S(-60, 0, 60, 0, 0.1, 1.6)];
+      case 'crate': return [S(-24, -24, 24, -24, 0.25), S(24, -24, 24, 24, 0.25), S(24, 24, -24, 24, 0.25), S(-24, 24, -24, -24, 0.25)];
+      case 'bomb': return [];
+      case 'fan': return [S(-15, -22, 15, -22, 0.15), S(15, -22, 15, 22, 0.15), S(15, 22, -15, 22, 0.15), S(-15, 22, -15, -22, 0.15)];
+      case 'goal': return [S(-38, -42, -38, 30, 0.1), S(38, -42, 38, 30, 0.1), S(-38, 30, 38, 30, 0.1)];
+      default: return [];
+    }
+  }
+  updateGame(w, h) {
+    const segs = [];
+    for (const p of this.G.parts) if (p.px === undefined) segs.push(...this.segsFor(p));
+    const fans = this.G.parts.filter((p) => p.type === 'fan');
+    const bombs = this.G.parts.filter((p) => p.type === 'bomb' && !p.exploded);
+    const goal = this.G.parts.find((p) => p.type === 'goal');
+    const T = this.speedEl ? parseFloat(this.speedEl.value) : 0.45;
+    for (const p of this.G.parts) {
+      if (p.px === undefined) continue;
+      const g = p.type === 'ball' ? 0.16 : -0.045;
+      for (let s = 0; s < 2; s++) {
+        p.vy += (g * T) / 2;
+        for (const f of fans) {
+          if (p.px < f.x - 15 && p.px > f.x - 230 && p.py > f.y - 32 && p.py < f.y + 32) p.vx -= 0.05 * T;
         }
+        p.vx = Math.max(-12, Math.min(12, p.vx)); p.vy = Math.max(-12, Math.min(12, p.vy));
+        p.px += (p.vx * T) / 2; p.py += (p.vy * T) / 2;
+        for (const sg of segs) {
+          const ax = sg.x2 - sg.x1, ay = sg.y2 - sg.y1;
+          const len2 = ax * ax + ay * ay || 1;
+          let t = ((p.px - sg.x1) * ax + (p.py - sg.y1) * ay) / len2;
+          t = Math.max(0, Math.min(1, t));
+          const cx = sg.x1 + ax * t, cy = sg.y1 + ay * t;
+          let dx = p.px - cx, dy = p.py - cy;
+          const d = Math.hypot(dx, dy);
+          if (d < p.r && d > 0.0001) {
+            dx /= d; dy /= d;
+            p.px = cx + dx * p.r; p.py = cy + dy * p.r;
+            const vn = p.vx * dx + p.vy * dy;
+            if (vn < 0) { p.vx -= (1 + sg.rest) * vn * dx; p.vy -= (1 + sg.rest) * vn * dy; p.vx *= 0.99; p.vy *= 0.99; }
+            if (sg.conv) p.vx += (sg.conv - p.vx) * 0.12;
+          }
+        }
+        if (p.py > h - p.r) {
+          p.py = h - p.r; if (p.vy > 0) p.vy = -p.vy * 0.4; p.vx *= 0.985;
+          if (p.type === 'ball' && !this.G.won && !p._floored && performance.now() - this.runStart > 400) { p._floored = true; this.failRun('the O hit the floor!!'); return; }
+        }
+        if (p.py < p.r) { p.py = p.r; if (p.vy < 0) p.vy = -p.vy * 0.3; }
+        if (p.px < p.r) { p.px = p.r; p.vx = Math.abs(p.vx) * 0.6; }
+        if (p.px > w - p.r) { p.px = w - p.r; p.vx = -Math.abs(p.vx) * 0.6; }
+      }
+      for (const b of bombs) {
+        if (p.type === 'ball' && Math.hypot(p.px - b.x, p.py - b.y) < 26) {
+          b.exploded = true; b.boomAt = this.frame;
+          let dx = p.px - b.x, dy = p.py - b.y; const d = Math.hypot(dx, dy) || 1;
+          dx /= d; dy /= d;
+          p.vx = dx * 11; p.vy = dy * 11 - 4;
+          for (let i = 0; i < 30; i++) this.G.particles.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.7) * 11, r: Math.random() * 360, life: 1 });
+        }
+      }
+      if (!this.G.won && goal && p.type === 'ball' && Math.abs(p.px - goal.x) < 26 && p.py > goal.y - 20 && p.py < goal.y + 26) {
+        this.G.won = true;
+        if (this.winEl) {
+          this.winEl.style.display = 'block';
+          if (this.winSub) this.winSub.textContent = this.level >= 10 ? 'that was the last one. click the bucket.' : `click the bucket \u2192 lvl ${this.level + 1}`;
+        }
+        for (let i = 0; i < 42; i++) this.G.particles.push({ x: p.px, y: p.py, vx: (Math.random() - 0.5) * 9, vy: -Math.random() * 8 - 1, r: Math.random() * 360, life: 1 });
+      }
+    }
+    if (this.G.running && !this.G.won && performance.now() - this.runStart > 13000) this.failRun();
+    this.G.particles.forEach((q) => { q.vy += 0.18; q.x += q.vx; q.y += q.vy; q.r += q.vx * 4; q.life -= 0.01; });
+    this.G.particles = this.G.particles.filter((q) => q.life > 0);
+  }
+  drawGame() {
+    const cv = this.cv, x = this.gx;
+    const dpr = devicePixelRatio || 1;
+    const cw = cv.clientWidth, ch = cv.clientHeight;
+    if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr); }
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, cw, ch);
+    x.fillStyle = 'rgba(10,10,10,0.13)';
+    for (let gy = 30; gy < ch; gy += 44) for (let gxp = 30; gxp < cw; gxp += 44) x.fillRect(gxp, gy, 2, 2);
+    if (this.G.running) this.updateGame(cw, ch);
+    for (const p of this.G.parts) this.drawPart(p);
+    if (!this.G.running && this.G.mouse && !this.G.drag) {
+      x.globalAlpha = 0.3;
+      this.drawPart(this.makePart(this.G.tool, this.G.mouse.x, this.G.mouse.y));
+      x.globalAlpha = 1;
+    }
+    for (const q of this.G.particles) {
+      x.save(); x.globalAlpha = Math.max(0, q.life); x.translate(q.x, q.y); x.rotate(q.r * Math.PI / 180);
+      x.font = '700 16px "Space Mono"'; x.textAlign = 'center'; x.fillStyle = '#0A0A0A';
+      x.fillText('*', 0, 5);
+      x.restore();
+    }
+    this.frame++;
+  }
+  glyph(txt, gx, gy, size, weight) {
+    const x = this.gx;
+    x.font = (weight || 700) + ' ' + size + 'px "Space Mono"';
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillStyle = '#0A0A0A';
+    x.fillText(txt, gx, gy);
+  }
+  drawPart(p) {
+    const x = this.gx;
+    const px = p.px !== undefined ? p.px : p.x, py = p.py !== undefined ? p.py : p.y;
+    switch (p.type) {
+      case 'ball': this.glyph('O', px, py + 1, 34); break;
+      case 'balloon': {
+        this.glyph('*', px, py + 6, 52);
+        x.strokeStyle = '#0A0A0A'; x.lineWidth = 1.5;
+        x.beginPath(); x.moveTo(px, py + 13); x.lineTo(px + 2, py + 26); x.stroke();
+        break;
+      }
+      case 'rampA': {
+        for (let i = 0; i < 5; i++) this.glyph('\\', p.x - 40 + i * 20, p.y - 40 + i * 20, 30);
+        break;
+      }
+      case 'rampB': {
+        for (let i = 0; i < 5; i++) this.glyph('/', p.x - 40 + i * 20, p.y + 40 - i * 20, 30);
+        break;
+      }
+      case 'shelf': this.glyph('=========', p.x, p.y + 1, 22); break;
+      case 'tramp': {
+        this.glyph('mmmmmm', p.x, p.y + 6, 24);
+        this.glyph('boing', p.x, p.y + 26, 11, 400);
+        break;
+      }
+      case 'belt': {
+        x.save();
+        x.beginPath(); x.rect(p.x - 62, p.y - 12, 124, 24); x.clip();
+        const step = 16, off = (this.frame * 0.6) % step;
+        for (let i = -1; i < 9; i++) this.glyph('>', p.x - 62 + i * step + off + 8, p.y + 1, 22);
+        x.restore();
+        x.strokeStyle = '#0A0A0A'; x.lineWidth = 2;
+        x.strokeRect(p.x - 62, p.y - 12, 124, 24);
+        break;
+      }
+      case 'fan': {
+        this.glyph('[~]', p.x, p.y + 1, 30);
+        const ph = (this.frame * 0.9) % 18;
+        for (let i = 0; i < 4; i++) {
+          const wx = p.x - 30 - i * 26 - ph;
+          this.glyph('~', wx, p.y - 12, 18, 400);
+          this.glyph('~', wx - 8, p.y + 12, 18, 400);
+        }
+        break;
+      }
+      case 'crate': {
+        this.glyph('[#]', p.x, p.y + 1, 34);
+        x.strokeStyle = '#0A0A0A'; x.lineWidth = 2.5;
+        x.strokeRect(p.x - 24, p.y - 24, 48, 48);
+        break;
+      }
+      case 'bomb': {
+        if (p.exploded) {
+          if (this.frame - p.boomAt < 30) this.glyph('BOOM', p.x, p.y, 30 + (this.frame - p.boomAt), 700);
+        } else {
+          const pulse = 1 + Math.sin(this.frame * 0.15) * 0.08;
+          this.glyph('(!)', p.x, p.y + 1, 30 * pulse);
+          this.glyph('bomb', p.x, p.y + 26, 11, 400);
+        }
+        break;
+      }
+      case 'goal': {
+        x.strokeStyle = '#0A0A0A'; x.lineWidth = 5; x.lineCap = 'round';
+        x.beginPath(); x.moveTo(p.x - 38, p.y - 42); x.lineTo(p.x - 38, p.y + 30); x.lineTo(p.x + 38, p.y + 30); x.lineTo(p.x + 38, p.y - 42); x.stroke();
+        this.glyph('IN HERE', p.x, p.y + 48, 12, 400);
+        break;
       }
     }
   }
-
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseenter', () => {
-    if (screen === 'columns') startSpring();
-  });
-  window.addEventListener('mouseleave', () => {
-    stopSpring();
-    currentIndex = -1;
-  });
-
-  // Touch support
-  window.addEventListener('touchstart', (e) => {
-    if (screen === 'columns') startSpring();
-    const t = e.touches[0];
-    onMove({ clientX: t.clientX, clientY: t.clientY });
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    const t = e.touches[0];
-    onMove({ clientX: t.clientX, clientY: t.clientY });
-  }, { passive: true });
-
-  window.addEventListener('touchend', () => {
-    stopSpring();
-    currentIndex = -1;
-  });
-
-  startSpring();
-})();
+  stylePalette() {
+    this.palBtns.forEach((b) => {
+      const on = b.getAttribute('data-part') === this.G.tool;
+      b.style.background = on ? '#0A0A0A' : '#EEE9E5';
+      b.style.color = on ? '#EEE9E5' : '#0A0A0A';
+    });
+  }
+  // ---------- main loop ----------
+  tick() {
+    const k = this.chaos(), vh = innerHeight;
+    const blinkPhase = performance.now() % 4200;
+    const shut = blinkPhase < 130;
+    for (const e of this.eyes) {
+      const { el, p } = e;
+      if (!p) continue;
+      if (shut !== e.closed) { e.closed = shut; el.style.transform = e.base + (shut ? ' scaleY(0.12)' : ''); }
+      if (shut) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || r.bottom < -50 || r.top > vh + 50) continue;
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const dx = this.M.x - cx, dy = this.M.y - cy, d = Math.hypot(dx, dy) || 1;
+      const f = Math.min(d, 260) / 260 * r.width * 0.17;
+      p.style.transform = `translate(calc(-50% + ${(dx / d) * f}px), calc(-50% + ${(dy / d) * f}px))`;
+    }
+    if (this.para && this.words.length) {
+      const r = this.para.getBoundingClientRect();
+      const prog = Math.min(1, Math.max(0, (vh * 0.9 - r.top) / (r.height + vh * 0.45)));
+      const cut = prog * this.words.length * 1.25;
+      this.words.forEach((w, i) => {
+        const on = i < cut;
+        if (on !== w._on) {
+          w._on = on;
+          w.style.opacity = on ? '1' : '0.13';
+          w.style.transform = w._rot + (on ? ' translateY(0)' : ' translateY(12px)');
+        }
+      });
+    }
+    if (this.follower) {
+      const show = (this.props.cursorBuddy ?? true) && this.canHover;
+      this.follower.style.display = show ? 'block' : 'none';
+      if (show) {
+        this.fol.x += (this.M.x - this.fol.x) * 0.11;
+        this.fol.y += (this.M.y - this.fol.y) * 0.11;
+        this.fol.rot += 0.8 + k;
+        this.follower.style.transform = `translate(${this.fol.x + 16}px, ${this.fol.y + 18}px) rotate(${this.fol.rot}deg)`;
+      }
+    }
+    if (this.cv) this.drawGame();
+    this._raf = requestAnimationFrame(() => this.tick());
+  }
+}
 </script>
 </body>
 </html>
